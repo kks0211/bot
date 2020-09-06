@@ -1,0 +1,179 @@
+아나콘다 설치 (관리자 권한으로 설치)
+https://repo.anaconda.com/archive/Anaconda3-2020.02-Windows-x86.exe
+
+pycharm 설치 
+python Interpreter 설정(Add) 눌러서 
+
+
+파이썬 아나콘다 연동
+
+System Interpreter 눌러서
+(C:\ProgramData\Anaconda3\python.exe) 로 잡혀있어야함.
+
+제대로 안잡혀 있으면 print 에서 오류 남.
+
+!!! 중요 
+Setting ->Project:bot 에서
+python interpreter 에서 (C:\ProgramData\Anaconda3\python.exe) 로 잡혀있어야함.
+
+
+
+https://dora-guide.com/pycharm-install/ (파이참 설정 참고)
+
+키움증권 홈페이지 
+- openApi 설치 
+- KOA스튜디오 설치
+
+
+챕터 1-1 참고 링크
+https://wikidocs.net/85713
+
+
+키움 증권 만들기
+kks5480
+95372
+
+9537
+증권번호
+5492-7939
+
+OpenAPI 데이터 가져오기
+주식 데이터를 가져오기 위해
+
+KOA스튜디오(가져올수 있는 주식 확인하는 프로그램) 오류 날때 -모의투자만 접속 가능!!
+https://www.microsoft.com/ko-kr/download/confirmation.aspx?id=5555
+키움증권 OPEN API 참고
+https://download.kiwoom.com/web/openapi/kiwoom_openapi_plus_devguide_ver_1.5.pdf
+
+DB설치 (MYSQL)
+www.mysql.com
+다운로드 => MySQL Installer for Windows (용량큰거 다운로드)
+DB정보
+root:root
+bot:bot1
+
+
+
+=============================================================
+import가 없을때 
+1. 셋팅--> 프로젝트 -> python Interpeter '+' 버튼 눌러서 (pymysql 검색 후) 인스톨 
+그리고 파일에서 임포트 진행 
+2. 아니면 터미널에서
+(pip install pymysql)
+
+=============================================================
+코드비교 사이트
+https://www.diffchecker.com/diff
+4-2 참고 사이트 (종목 리스트 가져오기 (2))
+https://wikidocs.net/book/4652
+파이썬으로 배우는 알고리즘 트레이딩 (증권 알고리즘 기본서)
+https://wikidocs.net/book/110
+
+==============================================================
+
+DB 테이블 생성 순서
+daily_craw -> daily_buy_list -> min_craw 
+
+1. 예) (setting_data 테이블) daily_buy_list 컬럼에도 당일 날짜를 입력해줘야 min_craw를 업데이트 함.
+
+
+db_to_min_craw 란 분별 데이터(분 단위의 데이터)를 저장하는 테이블을 만들 거란 얘기
+
+
+* min_craw(분별) 에서 clo05는 close(분별 시세)의 평균값을 의미 (5분 평균)
+* daily-craw(일별)
+
+
+2. 예) (setting_data 테이블) min_crawler 컬럼에도 당일 날짜를 입력해줘야 
+table_crate !!
+
+
+
+
+stock_item_all 테이블
+check_daily_crawler컬럼이 1 은 daily_craw에 테이블을 만들었다는 의미 
+check_min_crawler 컬럼이 1은 그 행의 code_name에 해당하는 테이블만 만들었다는 의미
+두 컬럼다 0으로 다시 바뀜.
+
+
+==============================================================
+
+시뮬에이터 로직
+
+1. 초기 값 셋팅 (매수, 매도 알고리즘,  자금 설정)
+
+2. 매수 할 종목 선정 알고리즘 
+
+3. 매도 할 종목 선정 알고리즘
+
+==============================================================
+
+튜플?
+
+
+==============================================================
+
+
+MYSQL셋팅은 mysql 관리.txt 참조!
+
+Data 위치 변경 
+DB Server 종료하고
+
+my.ini에소 datadir 위치 변경 하고 
+파일들 다 옮김
+
+regedit 에서 
+컴퓨터\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MySQL80
+경로에서 imagePath 에서 my.ini 파일 변경
+
+
+QNA 확인하는 곳  
+https://wikidocs.net/85346
+
+===============================================================
+
+
+jackbot1_imi1 
+today_buy_list=0
+daily_crawler=0
+daily_buy_list=0
+min_crawler=0
+으로 셋팅해야 데이터를 다시 가져옴 
+
+
+===============================================================
+
+collector 배치파일 실행 -> collector_v3.py 실행 -> collector_api() 실행 -> open_api() 실행 -> self.account_number (계좌번호 셋팅)
+ -> self.simul_num=1 (알고리즘 셋팅) -> cf.imi1_db_name = JackBot1 (DB정보 셋팅 ) -> code_update_check() 실행
+
+
+
+
+collector 에서 데이터 수집 (daily_craw) ->  daily_buy_list -> realtime_daily_buy_list (내일 매수 할 리스트)
+
+
+
+===============================================================
+!@8장 이 전체적으로 로직 설명!!! 
+매수, 매도 함수 공부 중요!!!!!
+
+===============================================================
+
+GITLAB 등록
+
+ssh-key 등록하고 
+
+
+
+
+
+
+===============================================================
+
+배치파일 명령어 관련 정리된 사이트
+
+https://docs.microsoft.com/ko-kr/windows-server/administration/windows-commands/forfiles
+
+
+
+===============================================================
