@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from sqlalchemy import Integer, Text
 
-ver = "#version 1.3.3"
+ver = "#version 1.3.7"
 print(f"collector_api Version: {ver}")
 
 import numpy
@@ -12,7 +12,7 @@ import time
 from PyQt5.QtWidgets import *
 from library.daily_buy_list import *
 from pandas import DataFrame
-# from kind_crawling import *
+from kind_crawling import *
 
 MARKET_KOSPI = 0
 MARKET_KOSDAQ = 10
@@ -22,11 +22,10 @@ MARKET_KOSDAQ = 10
 class collector_api():
     def __init__(self):
         self.open_api = open_api()
-        self.variable_setting()
         self.engine_JB = self.open_api.engine_JB
-        # self.kind = KINDCrawler()
+        self.variable_setting()
+        self.kind = KINDCrawler()
 
-    # 업데이트가 금일 제대로 끝났는지 확인
     def variable_setting(self):
         self.open_api.py_gubun = "collector"
         self.dc = daily_crawler(self.open_api.cf.real_db_name, self.open_api.cf.real_daily_craw_db_name,
@@ -61,11 +60,11 @@ class collector_api():
         if rows[0][3] != self.open_api.today:
             self.db_to_today_profit_list()
 
-        # daily_craw db 업데이트 -1-
+        # daily_craw db 업데이트
         if rows[0][7] != self.open_api.today:
             self.daily_crawler_check()
 
-        # daily_buy_list db 업데이트 -2-
+        # daily_buy_list db 업데이트
         if rows[0][9] != self.open_api.today:
             self.daily_buy_list_check()
 
@@ -76,7 +75,7 @@ class collector_api():
             # 매도 했는데 bot이 꺼져있을때 매도해서 all_item_db에 sell_date에 오늘 일자가 안 찍힌 종목들에 date 값을 넣어 준다. (이때 sell_rate는 0.0으로 찍힌다.)
             self.open_api.final_chegyul_check()
 
-        # 내일 매수 종목 업데이트 (realtime_daily_buy_list) -3-
+        # 내일 매수 종목 업데이트 (realtime_daily_buy_list)
         if rows[0][6] != self.open_api.today:
             self.realtime_daily_buy_list_check()
 
@@ -84,7 +83,8 @@ class collector_api():
         if rows[0][8] != self.open_api.today:
             self.min_crawler_check()
 
-        # self.kind.craw()
+        # 크롤링
+        self.kind.craw()
 
         logger.debug("collecting 작업을 모두 정상적으로 마쳤습니다.")
 
@@ -222,7 +222,6 @@ class collector_api():
                         f"코드: {KIND_info.code}"
                     )
 
-
         stock_df['code_name'] = name_list
         stock_df['check_item'] = 0
         if type in checking_stocks:
@@ -236,6 +235,7 @@ class collector_api():
         dtypes['check_item'] = Integer  # check_item만 int로 변경
 
         stock_df.to_sql(f'stock_{type}', self.open_api.engine_daily_buy_list, if_exists='replace', dtype=dtypes)
+        return stock_df
 
     def get_code_list(self):
         self.dc.cc.get_item()
@@ -253,7 +253,7 @@ class collector_api():
             kospi=self.dc.cc.code_df_kospi,
             kosdaq=self.dc.cc.code_df_kosdaq,
             konex=self.dc.cc.code_df_konex,
-            insinserity=self.dc.cc.code_df_insincerity,
+            insincerity=self.dc.cc.code_df_insincerity,
             managing=self.dc.cc.code_df_managing
         )
 
@@ -261,15 +261,33 @@ class collector_api():
             stock_data['etf'] = DataFrame([(c, '') for c in self._get_code_list_by_market(8) if c],
                                           columns=['code', 'code_name'])
 
-        for type, data in stock_data.items():
-            self._stock_to_sql(data, type)
+        for _type, data in stock_data.items():
+            stock_data[_type] = self._stock_to_sql(data, _type)
 
-        # stock_insinserity와 stock_managing의 종목은 따로 중복하여 넣지 않음
-        excluded_tables = ['insinserity', 'managing']
+        # stock_insincerity와 stock_managing의 종목은 따로 중복하여 넣지 않음
+        excluded_tables = ['insincerity', 'managing']
         stock_item_all_df = pd.concat(
-            [v for k, v in stock_data.items() if k not in excluded_tables], ignore_index=True
+            [v[v['code_name'].map(len) > 0] for k, v in stock_data.items() if k not in excluded_tables],
+            ignore_index=True
         ).drop_duplicates(subset=['code', 'code_name'])
         self._stock_to_sql(stock_item_all_df, "item_all")
+
+        ### stock_item_all이 제대로 생성되는지 확인하는 코드
+        # union_frags = []
+        # alias_num = 0
+        # for _type, data in stock_data.items():
+        #     if _type not in excluded_tables:
+        #         union_frags.append(f"SELECT a{alias_num}.code_name FROM daily_buy_list.stock_{_type} a{alias_num}")
+        #         alias_num += 1
+        # union_query = '\nUNION ALL\n'.join(union_frags)
+        # testing_query = f"SELECT count(code_name) FROM ({union_query}) b " \
+        #                 f"WHERE code_name != '' or code_name != null"
+        #
+        # stock_union_count = self.engine_JB.execute(testing_query).fetchall()
+        # sia_count = self.engine_JB.execute(f"SELECT count(*) FROM daily_buy_list.stock_item_all").fetchall()
+        #
+        # assert sia_count == stock_union_count, "stock_item_all does not contain all data."
+        ###
 
         sql = "UPDATE setting_data SET code_update='%s' limit 1"
         self.engine_JB.execute(sql % (self.open_api.today))
@@ -500,51 +518,6 @@ class collector_api():
         for code in buy_list:
             f.writelines("매수;%s;시장가;10;0;매수전\n" % (code))
         f.close()
-
-    def transaction_info(self):
-        # 거래내역 출력
-
-        self.open_api.set_input_value("계좌번호", self.open_api.account_number)
-
-        # 	시작일자 = YYYYMMDD (20170101 연도4자리, 월 2자리, 일 2자리 형식)
-        self.open_api.set_input_value("시작일자", "20170101")
-        #
-        # 	종료일자 = YYYYMMDD (20170101 연도4자리, 월 2자리, 일 2자리 형식)
-        self.open_api.set_input_value("종료일자", "20180930")
-
-        # 	구분 = 0:전체, 1:입출금, 2:입출고, 3:매매, 4:매수, 5:매도, 6:입금, 7:출금, A:예탁담보대출입금, F:환전
-        self.open_api.set_input_value("구분", "0")
-
-        # 	종목코드 = 전문 조회할 종목코드
-        self.open_api.set_input_value("종목코드", "")
-        #
-        # 	통화코드 = 공백:전체, "CNY", "EUR", "HKD", "JPY", "USD"
-        self.open_api.set_input_value("통화코드", "CNY")
-
-        # 	상품구분 = 1, 0:전체, 1:국내주식, 2:수익증권, 3:해외주식, 4:금융상품
-        self.open_api.set_input_value("상품구분", "0")
-
-        #
-        # 	비밀번호입력매체구분 = 00
-        self.open_api.set_input_value("비밀번호입력매체구분", "00")
-        #
-        # 	고객정보제한여부 = Y:제한,N:비제한
-        self.open_api.set_input_value("고객정보제한여부", "Y")
-
-        self.open_api.comm_rq_data("opw00015_req", "opw00015", 0, "0382")
-        while self.open_api.remained_data:
-            self.open_api.set_input_value("계좌번호", self.open_api.account_number)
-
-            # 	시작일자 = YYYYMMDD (20170101 연도4자리, 월 2자리, 일 2자리 형식)
-            self.open_api.set_input_value("시작일자", "20170101")
-            #
-            # 	종료일자 = YYYYMMDD (20170101 연도4자리, 월 2자리, 일 2자리 형식)
-            self.open_api.set_input_value("종료일자", "20180930")
-
-            # 	구분 = 0:전체, 1:입출금, 2:입출고, 3:매매, 4:매수, 5:매도, 6:입금, 7:출금, A:예탁담보대출입금, F:환전
-            self.open_api.set_input_value("구분", "0")
-
-            self.open_api.comm_rq_data("opw00015_req", "opw00015", 2, "0382")
 
     def db_to_today_profit_list(self):
 
@@ -932,9 +905,3 @@ class collector_api():
         # 거래내역
         # # balance
         self.db_to_jango()
-
-    def run(self):
-
-        self.transaction_info()
-
-        return 0

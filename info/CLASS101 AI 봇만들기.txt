@@ -17,6 +17,11 @@ Setting ->Project:bot 에서
 python interpreter 에서 (C:\ProgramData\Anaconda3\python.exe) 로 잡혀있어야함.
 
 
+============================
+pip install pymysql
+pip install selenium
+============================
+
 
 https://dora-guide.com/pycharm-install/ (파이참 설정 참고)
 
@@ -164,10 +169,6 @@ GITLAB 등록
 ssh-key 등록하고 
 
 
-
-
-
-
 ===============================================================
 
 배치파일 명령어 관련 정리된 사이트
@@ -175,5 +176,11 @@ ssh-key 등록하고
 https://docs.microsoft.com/ko-kr/windows-server/administration/windows-commands/forfiles
 
 
+===============================================================
+
+chromedriver 설치
+c:\chromedriver 폴더 만들고 복사
 
 ===============================================================
+
+Collector.bat -> bot_stop -> trader.bat
