@@ -132,6 +132,10 @@ class simulator_func_mysql:
             self.sell_list_num = 1
             ###################################
 
+
+
+
+
             # 초기 투자자금(시뮬레이션에서의 초기 투자 금액. 모의투자는 신청 당시의 금액이 초기 투자 금액이라고 보시면 됩니다)
             # 주의! start_invest_price 는 모의투자 초기 자본금과 별개. 시뮬레이션에서만 적용.
 
@@ -608,6 +612,10 @@ class simulator_func_mysql:
                                                             "and close < '%s' group by code"
             # 아래 명령을 통해 테이블로 부터 데이터를 가져오면 리스트 형태로 realtime_daily_buy_list 에 담긴다.
             realtime_daily_buy_list = self.engine_daily_buy_list.execute(sql % (self.invest_unit)).fetchall()
+
+
+        
+
 
         ######################################################################################################################################################################################
 

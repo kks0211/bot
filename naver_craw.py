@@ -112,6 +112,7 @@ class NAVERCrawl:
         }
 
         res = requests.get(fin_url, year_fin_params, headers=headers)  # request
+
         try:
             return pd.read_html(res.text)[1]
         except Exception as e:
@@ -145,7 +146,7 @@ class NAVERCrawl:
         # 등의 이유로 인해 프로그램이 꺼지게 되면 다시 돌릴 때 이미 받은 종목들은 skip 하기 위해 로직 추가
         num = len(self.stock_item_all)  # print 용 변수
         latest_index = self.get_latest_index()
-        count = latest_index # print 용 변수
+        count = latest_index  # print 용 변수
         ####################################################
 
         # self.stock_item_all[latest_index:] : 가장 최근 받은 종목 이후로 시작

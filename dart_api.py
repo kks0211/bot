@@ -7,6 +7,7 @@
 # 예제 쿼리 (2015년도 기준, 0 < 2013영업이익 < 2014영업이익 < 2015영업이익 종목
 # ** 촬영 후 아래 쿼리 수정 하였습니다.
 # select * from dart where fs_nm = '재무제표' and bsns_year = '2015' and account_nm ='영업이익' and 0 < bfefrmtrm_amount and bfefrmtrm_amount < frmtrm_amount and frmtrm_amount < thstrm_amount
+# pip install dart_fss
 
 # (별도, 개별)재무제표 vs 연결재무제표
 # (별도, 개별)재무제표
