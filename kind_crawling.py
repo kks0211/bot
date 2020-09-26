@@ -162,7 +162,7 @@ class KINDCrawler:
             df.loc[df.해제일 == '-', '해제일'] = None
 
         if len(df):
-            del df['번호']    #번호 컬럼을 지움
+            del df['번호']  # 번호 컬럼을 지움
             df = df.rename(columns={
                 '종목코드': 'code',
                 '종목명': 'code_name',
@@ -308,3 +308,6 @@ class KINDCrawler:
 if __name__ == "__main__":
     client = KINDCrawler()
     client.craw()
+
+    # chrome driver process kill (no console)
+    os.system("WMIC process where name='chromedriver.exe' delete > nul")
